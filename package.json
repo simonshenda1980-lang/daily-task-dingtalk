@@ -2,11 +2,11 @@
   "name": "daily-task-manager",
   "version": "1.0.0",
   "description": "跨平台每日任务管理系统 - 钉钉机器人 + Web 看板",
-  "main": "src/bot.js",
+  "main": "src/server.js",
   "type": "module",
   "scripts": {
-    "dev": "node --watch src/bot.js",
-    "start": "node src/bot.js",
+    "dev": "node --watch src/server.js",
+    "start": "node src/server.js",
     "deploy": "vercel deploy --prod"
   },
   "keywords": [
