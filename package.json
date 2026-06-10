@@ -1,0 +1,32 @@
+{
+  "name": "daily-task-manager",
+  "version": "1.0.0",
+  "description": "跨平台每日任务管理系统 - 钉钉机器人 + Web 看板",
+  "main": "src/bot.js",
+  "type": "module",
+  "scripts": {
+    "dev": "node --watch src/bot.js",
+    "start": "node src/bot.js",
+    "deploy": "vercel deploy --prod"
+  },
+  "keywords": [
+    "telegram",
+    "bot",
+    "task-manager"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@supabase/supabase-js": "^2.39.0",
+    "axios": "^1.17.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "node-cron": "^3.0.3",
+    "node-telegram-bot-api": "^0.64.0",
+    "ws": "^8.21.0"
+  },
+  "devDependencies": {
+    "vercel": "^32.4.1"
+  }
+}

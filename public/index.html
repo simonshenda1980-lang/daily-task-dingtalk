@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>每日任务看板</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: white;
+            border-radius: 16px;
+            padding: 30px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .header h1 {
+            color: #333;
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+
+        .date {
+            color: #666;
+            font-size: 16px;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 36px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .task-section {
+            background: white;
+            border-radius: 16px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .section-title {
+            font-size: 20px;
+            color: #333;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .task-list {
+            list-style: none;
+        }
+
+        .task-item {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            margin-bottom: 10px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+        }
+
+        .task-item:hover {
+            transform: translateX(5px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .task-item.completed {
+            opacity: 0.6;
+            text-decoration: line-through;
+        }
+
+        .task-checkbox {
+            width: 24px;
+            height: 24px;
+            margin-right: 15px;
+            cursor: pointer;
+        }
+
+        .task-content {
+            flex: 1;
+            font-size: 16px;
+            color: #333;
+        }
+
+        .task-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .btn-complete {
+            background: #10b981;
+            color: white;
+        }
+
+        .btn-complete:hover {
+            background: #059669;
+        }
+
+        .btn-postpone {
+            background: #f59e0b;
+            color: white;
+        }
+
+        .btn-postpone:hover {
+            background: #d97706;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #999;
+        }
+
+        .empty-state-icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+        }
+
+        .refresh-btn {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+            transition: all 0.3s ease;
+        }
+
+        .refresh-btn:hover {
+            transform: scale(1.1) rotate(180deg);
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+
+        .telegram-hint {
+            background: #e0f2fe;
+            border-left: 4px solid #0284c7;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            font-size: 14px;
+            color: #0369a1;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .spinning {
+            animation: spin 1s linear infinite;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📋 每日任务看板</h1>
+            <div class="date" id="currentDate"></div>
+            
+            <div class="stats">
+                <div class="stat-card">
+                    <div class="stat-number" id="totalTasks">0</div>
+                    <div class="stat-label">总任务</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="completedTasks">0</div>
+                    <div class="stat-label">已完成</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="pendingTasks">0</div>
+                    <div class="stat-label">待完成</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="task-section">
+            <div class="telegram-hint">
+                💡 <strong>提示：</strong>在 Telegram Bot 中添加任务，这里会自动同步显示。刷新页面可查看最新任务。
+            </div>
+
+            <h2 class="section-title">今日任务</h2>
+            
+            <div id="taskContainer">
+                <div class="loading">加载中...</div>
+            </div>
+        </div>
+    </div>
+
+    <button class="refresh-btn" onclick="loadTasks()" title="刷新">↻</button>
+
+    <script>
+        // 从 URL 参数获取用户 ID（支持 Telegram 和钉钉）
+        const urlParams = new URLSearchParams(window.location.search);
+        let userId = urlParams.get('telegram_id') || urlParams.get('dingtalk_id') || urlParams.get('user_id');
+        
+        // 如果没有，尝试从 localStorage 获取
+        if (!userId) {
+            userId = localStorage.getItem('telegram_id') || localStorage.getItem('dingtalk_id');
+        }
+
+        // 如果没有 user_id，提示用户输入
+        if (!userId) {
+            const inputId = prompt('请输入你的钉钉 ID：\n\n你可以在钉钉中发送消息给机器人后查看日志获取');
+            if (inputId) {
+                localStorage.setItem('dingtalk_id', inputId);
+                window.location.reload();
+            } else {
+                document.getElementById('taskContainer').innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">⚠️</div>
+                        <p>请先设置钉钉 ID</p>
+                        <p style="font-size: 14px; margin-top: 10px;">刷新页面重新输入</p>
+                    </div>
+                `;
+            }
+        }
+
+        // 显示当前日期
+        function showCurrentDate() {
+            const now = new Date();
+            const options = { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' };
+            document.getElementById('currentDate').textContent = now.toLocaleDateString('zh-CN', options);
+        }
+
+        // 加载任务列表
+        async function loadTasks() {
+            if (!userId) return;
+
+            const container = document.getElementById('taskContainer');
+            container.innerHTML = '<div class="loading">加载中...</div>';
+
+            try {
+                const response = await fetch(`/api/today?dingtalk_id=${userId}`);
+                const result = await response.json();
+
+                if (!result.success) {
+                    throw new Error(result.error);
+                }
+
+                const { tasks, stats } = result.data;
+
+                // 更新统计
+                document.getElementById('totalTasks').textContent = stats.total;
+                document.getElementById('completedTasks').textContent = stats.completed;
+                document.getElementById('pendingTasks').textContent = stats.pending;
+
+                // 渲染任务列表
+                if (tasks.length === 0) {
+                    container.innerHTML = `
+                        <div class="empty-state">
+                            <div class="empty-state-icon">📭</div>
+                            <p>今日暂无任务</p>
+                            <p style="font-size: 14px; margin-top: 10px;">在钉钉中发送消息添加你的第一个任务吧！</p>
+                        </div>
+                    `;
+                } else {
+                    const taskList = document.createElement('ul');
+                    taskList.className = 'task-list';
+
+                    tasks.forEach(task => {
+                        const li = document.createElement('li');
+                        li.className = `task-item ${task.status === 'completed' ? 'completed' : ''}`;
+                        
+                        const statusIcon = task.status === 'completed' ? '✅' : 
+                                         task.status === 'postponed' ? '⏸️' : '⏳';
+
+                        li.innerHTML = `
+                            <span style="margin-right: 10px;">${statusIcon}</span>
+                            <div class="task-content">${escapeHtml(task.content)}</div>
+                            ${task.status === 'pending' ? `
+                                <div class="task-actions">
+                                    <button class="btn btn-complete" onclick="completeTask('${task.id}')">完成</button>
+                                    <button class="btn btn-postpone" onclick="postponeTask('${task.id}')">延期</button>
+                                </div>
+                            ` : ''}
+                        `;
+
+                        taskList.appendChild(li);
+                    });
+
+                    container.innerHTML = '';
+                    container.appendChild(taskList);
+                }
+            } catch (error) {
+                console.error('加载任务失败:', error);
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">❌</div>
+                        <p>加载失败：${error.message}</p>
+                        <p style="font-size: 14px; margin-top: 10px;">请检查网络连接或刷新重试</p>
+                    </div>
+                `;
+            }
+        }
+
+        // 标记任务完成
+        async function completeTask(taskId) {
+            try {
+                const response = await fetch('/api/complete', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ taskId })
+                });
+
+                const result = await response.json();
+                
+                if (result.success) {
+                    loadTasks(); // 重新加载
+                } else {
+                    alert('操作失败：' + result.error);
+                }
+            } catch (error) {
+                console.error('标记完成失败:', error);
+                alert('网络错误，请重试');
+            }
+        }
+
+        // 延期任务
+        async function postponeTask(taskId) {
+            try {
+                const response = await fetch('/api/postpone', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ taskId })
+                });
+
+                const result = await response.json();
+                
+                if (result.success) {
+                    loadTasks(); // 重新加载
+                } else {
+                    alert('操作失败：' + result.error);
+                }
+            } catch (error) {
+                console.error('延期任务失败:', error);
+                alert('网络错误，请重试');
+            }
+        }
+
+        // HTML 转义
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // 初始化
+        showCurrentDate();
+        if (userId) {
+            loadTasks();
+            // 每 30 秒自动刷新
+            setInterval(loadTasks, 30000);
+        }
+    </script>
+</body>
+</html>

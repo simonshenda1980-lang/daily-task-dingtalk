@@ -1,0 +1,36 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "src/dingtalk-webhook.js",
+      "use": "@vercel/node"
+    },
+    {
+      "src": "src/web-server.js",
+      "use": "@vercel/node"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/webhook",
+      "dest": "src/dingtalk-webhook.js"
+    },
+    {
+      "src": "/api/(.*)",
+      "dest": "src/web-server.js"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "public/$1"
+    }
+  ],
+  "env": {
+    "SUPABASE_URL": "@supabase_url",
+    "SUPABASE_KEY": "@supabase_key",
+    "DINGTALK_WEBHOOK": "@dingtalk_webhook",
+    "DINGTALK_SECRET": "@dingtalk_secret",
+    "REMINDER_CRON": "30 21",
+    "WEB_PORT": "3000",
+    "DINGTALK_PORT": "3001"
+  }
+}

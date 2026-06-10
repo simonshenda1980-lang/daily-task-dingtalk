@@ -1,0 +1,23 @@
+services:
+  - type: web
+    name: daily-task-dingtalk
+    env: node
+    buildCommand: npm install
+    startCommand: node src/dingtalk-webhook.js
+    envVars:
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_KEY
+        sync: false
+      - key: DINGTALK_WEBHOOK
+        sync: false
+      - key: DINGTALK_SECRET
+        sync: false
+      - key: REMINDER_CRON
+        value: "30 21"
+      - key: WEB_PORT
+        value: "3000"
+      - key: DINGTALK_PORT
+        value: "3001"
+    autoDeploy: true
+    healthCheckPath: /webhook
